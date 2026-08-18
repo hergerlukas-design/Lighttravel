@@ -6,6 +6,7 @@ import { planetPositions } from '../lib/astronomy.js'
 import { lightTimeFromKm, nf } from '../lib/lightTravel.js'
 import { AU_KM } from '../lib/constants.js'
 import LightBubble from './LightBubble.jsx'
+import ConnectionLine from './ConnectionLine.jsx'
 
 // Logarithmische Radial-Abbildung: echte AU-Distanz → Szenen-Einheiten.
 // Bewahrt die reale Winkelkonfiguration der Planeten zum Datum, komprimiert
@@ -15,6 +16,13 @@ const R0 = 0.18
 const LOG_K = 3.1
 export function auMap(au) {
   return LOG_K * Math.log10(1 + Math.max(0, au) / R0)
+}
+
+// Szenen-Position eines Planeten (Ekliptik-Ebene auf XZ, y = Höhe).
+export function planetScenePos(p) {
+  const r = auMap(p.distanceAu)
+  const rr = p.distanceAu || 1
+  return [(p.x / rr) * r, (p.z / rr) * r * 0.6, (p.y / rr) * r]
 }
 
 function OrbitRing({ radius }) {
@@ -63,7 +71,6 @@ function Planet({ planet, inside, boundary, selected, onSelect }) {
   const ref = useRef()
   const boundaryRing = useRef()
   const isEarth = planet.name === 'Erde'
-  const r = auMap(planet.distanceAu)
 
   useFrame((state) => {
     if (boundaryRing.current) {
@@ -71,11 +78,7 @@ function Planet({ planet, inside, boundary, selected, onSelect }) {
       boundaryRing.current.scale.setScalar(p)
     }
   })
-  const ux = planet.x / (planet.distanceAu || 1)
-  const uy = planet.y / (planet.distanceAu || 1)
-  const uz = planet.z / (planet.distanceAu || 1)
-  // Ekliptik-Ebene auf die XZ-Ebene der Szene legen (y = Höhe)
-  const pos = [ux * r, uz * r * 0.6, uy * r]
+  const pos = planetScenePos(planet)
   const size = planet.size * 0.32
 
   return (
@@ -92,6 +95,7 @@ function Planet({ planet, inside, boundary, selected, onSelect }) {
             lightTime: lightTimeFromKm(planet.distanceKm),
             inside,
             boundary,
+            pos,
             meta: isEarth
               ? 'Unser Heimatplanet'
               : boundary
@@ -148,6 +152,8 @@ function Planet({ planet, inside, boundary, selected, onSelect }) {
 export default function SolarSystemScene({ date, bubbleAu, onSelect, selected }) {
   const planets = useMemo(() => planetPositions(date), [date])
   const bubbleR = auMap(bubbleAu)
+  const earth = planets.find((p) => p.name === 'Erde')
+  const earthPos = earth ? planetScenePos(earth) : [0, 0, 0]
 
   return (
     <group>
@@ -166,6 +172,7 @@ export default function SolarSystemScene({ date, bubbleAu, onSelect, selected })
         />
       ))}
       <LightBubble radius={bubbleR} />
+      <ConnectionLine from={earthPos} to={selected?.pos} />
     </group>
   )
 }

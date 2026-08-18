@@ -7,8 +7,9 @@ import { lightTimeFromKm, nf } from '../lib/lightTravel.js'
 import { matchesStar } from '../lib/starFilter.js'
 import { constellationName } from '../lib/constellations.js'
 import LightBubble from './LightBubble.jsx'
-import HomeSystem from './HomeSystem.jsx'
+import HomeSystem, { homeEarthPosition } from './HomeSystem.jsx'
 import BoundaryMarkers from './BoundaryMarkers.jsx'
+import ConnectionLine from './ConnectionLine.jsx'
 
 const vertexShader = /* glsl */ `
   attribute vec3 aColor;
@@ -104,6 +105,7 @@ function StarPoints({ bubblePc, filters, onSelect }) {
           distanceLabel: `${nf(2).format(s.distLy)} Lj · ${nf(2).format(s.distPc)} pc`,
           lightTime: lightTimeFromKm(s.distKm),
           inside: s.distPc <= bubblePc,
+          pos: [s.x, s.z, s.y],
           meta: s.spect
             ? `Spektraltyp ${s.spect} · ${constellationName(s.con)}`
             : constellationName(s.con),
@@ -132,12 +134,14 @@ function StarPoints({ bubblePc, filters, onSelect }) {
 
 export default function StarFieldScene({ date, bubbleLy, fit, filters, onSelect, selected }) {
   const bubblePc = bubbleLy / PARSEC_IN_LY
+  const earthPos = homeEarthPosition(date, fit)
   return (
     <group>
       <HomeSystem date={date} fit={fit} onSelect={onSelect} selected={selected} />
       <StarPoints bubblePc={bubblePc} filters={filters} onSelect={onSelect} />
       <BoundaryMarkers bubbleLy={bubbleLy} fit={fit} filters={filters} onSelect={onSelect} />
       <LightBubble radius={bubblePc} color="#8ab4ff" opacity={0.85} />
+      <ConnectionLine from={earthPos} to={selected?.pos} />
     </group>
   )
 }

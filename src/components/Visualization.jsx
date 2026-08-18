@@ -1,4 +1,4 @@
-import { useRef, useState, Suspense } from 'react'
+import { useRef, useState, useEffect, Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stars } from '@react-three/drei'
 import CameraRig from './CameraRig.jsx'
@@ -24,6 +24,12 @@ export default function Visualization({ result, selected, setSelected }) {
   const controls = useRef()
   const isSolar = result.scene === 'solar'
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
+
+  // Auswahl verwerfen, wenn die Szene wechselt: die gespeicherte Position
+  // gilt nur im jeweiligen Koordinatensystem (AE ↔ Parsec).
+  useEffect(() => {
+    setSelected(null)
+  }, [result.scene, setSelected])
 
   // Lichtblasenradius in den jeweiligen Szenen-Einheiten.
   const bubbleAu = result.au

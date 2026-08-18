@@ -61,6 +61,7 @@ export default function HomeSystem({ date, fit, onSelect, selected }) {
             distanceLabel: '0 (Heimatstern)',
             lightTime: 'im Zentrum',
             inside: true,
+            pos: [0, 0, 0],
             meta: 'Unser Heimatstern – Ausgangspunkt der Lichtreise',
           })
         }}
@@ -106,6 +107,7 @@ export default function HomeSystem({ date, fit, onSelect, selected }) {
                     distanceLabel: `${nf(3).format(p.distanceAu)} AE von der Sonne`,
                     lightTime: lightTimeFromKm(p.distanceKm),
                     inside: true,
+                    pos: [angleX, 0, angleZ],
                     meta: isEarth
                       ? 'Unser Heimatplanet – von hier aus blickst du ins All'
                       : `Position zum ${date.toLocaleDateString('de-DE')}`,
@@ -151,4 +153,21 @@ export default function HomeSystem({ date, fit, onSelect, selected }) {
       })}
     </group>
   )
+}
+
+/**
+ * Szenen-Position des Erd-Markers im Heimat-System – identische Formel wie
+ * oben, damit die Verbindungslinie exakt an der Erde beginnt.
+ */
+export function homeEarthPosition(date, fit) {
+  const emblemR = fit * 0.09
+  const planets = planetPositions(date)
+  const n = planets.length
+  const i = planets.findIndex((p) => p.name === 'Erde')
+  if (i < 0) return [0, 0, 0]
+  const p = planets[i]
+  const t = n > 1 ? i / (n - 1) : 0
+  const ringR = emblemR * (0.32 + 0.68 * t)
+  const rr = p.distanceAu || 1
+  return [(p.x / rr) * ringR, 0, (p.y / rr) * ringR]
 }

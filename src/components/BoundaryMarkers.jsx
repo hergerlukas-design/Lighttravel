@@ -66,6 +66,7 @@ function Marker({ star, size, bubblePc, frontier, onSelect }) {
       inside,
       boundary: true,
       frontier,
+      pos: [star.x, star.z, star.y],
       meta: frontier
         ? 'Diesen Stern erreicht dein Licht als Nächstes'
         : star.spect
