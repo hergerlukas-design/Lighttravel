@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #04040c;
+  color: #e8ecff;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Native date input tweaks for the dark theme */
+input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .starfield-bg {
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.6), transparent),
+      radial-gradient(1px 1px at 70% 60%, rgba(255, 255, 255, 0.5), transparent),
+      radial-gradient(1.5px 1.5px at 40% 80%, rgba(180, 200, 255, 0.5), transparent),
+      radial-gradient(1px 1px at 85% 20%, rgba(255, 255, 255, 0.4), transparent),
+      radial-gradient(1px 1px at 55% 15%, rgba(200, 210, 255, 0.4), transparent);
+  }
+}
+
+/* Thin scrollbars in dark UI */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(138, 180, 255, 0.25);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(138, 180, 255, 0.4);
+}
