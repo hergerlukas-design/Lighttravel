@@ -16,6 +16,17 @@ export default function InfoPopup({ object, onClose }) {
                 im Lichtkegel
               </span>
             )}
+            {object.frontier ? (
+              <span className="ml-2 rounded-full bg-beam/20 px-2 py-0.5 text-[10px] font-semibold text-beam">
+                als Nächstes
+              </span>
+            ) : (
+              object.boundary && (
+                <span className="ml-2 rounded-full bg-[#7fe9ff]/20 px-2 py-0.5 text-[10px] font-semibold text-[#bff1ff]">
+                  an der Grenze
+                </span>
+              )
+            )}
           </div>
           <h3 className="mt-0.5 font-display text-xl font-semibold text-light-200">
             {object.name}

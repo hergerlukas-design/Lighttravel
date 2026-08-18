@@ -1,4 +1,5 @@
 import { useMemo, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { DoubleSide } from 'three'
 import { planetPositions } from '../lib/astronomy.js'
@@ -58,10 +59,18 @@ function Sun() {
   )
 }
 
-function Planet({ planet, inside, selected, onSelect }) {
+function Planet({ planet, inside, boundary, selected, onSelect }) {
   const ref = useRef()
+  const boundaryRing = useRef()
   const isEarth = planet.name === 'Erde'
   const r = auMap(planet.distanceAu)
+
+  useFrame((state) => {
+    if (boundaryRing.current) {
+      const p = 1 + Math.sin(state.clock.elapsedTime * 2.4) * 0.18
+      boundaryRing.current.scale.setScalar(p)
+    }
+  })
   const ux = planet.x / (planet.distanceAu || 1)
   const uy = planet.y / (planet.distanceAu || 1)
   const uz = planet.z / (planet.distanceAu || 1)
@@ -82,7 +91,12 @@ function Planet({ planet, inside, selected, onSelect }) {
             distanceLabel: `${nf(3).format(planet.distanceAu)} AE`,
             lightTime: lightTimeFromKm(planet.distanceKm),
             inside,
-            meta: isEarth ? 'Unser Heimatplanet' : undefined,
+            boundary,
+            meta: isEarth
+              ? 'Unser Heimatplanet'
+              : boundary
+                ? 'Nahe der Lichtfront'
+                : undefined,
           })
         }}
         onPointerOver={(e) => {
@@ -110,6 +124,12 @@ function Planet({ planet, inside, selected, onSelect }) {
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <ringGeometry args={[size * 2.2, size * 2.6, 40]} />
           <meshBasicMaterial color="#8ab4ff" side={DoubleSide} transparent opacity={0.85} />
+        </mesh>
+      )}
+      {boundary && (
+        <mesh ref={boundaryRing} raycast={() => null}>
+          <ringGeometry args={[size * 3.0, size * 3.5, 44]} />
+          <meshBasicMaterial color="#7fe9ff" side={DoubleSide} transparent opacity={0.9} />
         </mesh>
       )}
       <Html center distanceFactor={18} position={[0, size + 0.5, 0]} zIndexRange={[10, 0]}>
@@ -140,6 +160,7 @@ export default function SolarSystemScene({ date, bubbleAu, onSelect, selected })
           key={p.name}
           planet={p}
           inside={bubbleAu >= p.distanceAu}
+          boundary={Math.abs(p.distanceAu - bubbleAu) <= bubbleAu * 0.18}
           selected={selected?.name === p.name}
           onSelect={onSelect}
         />

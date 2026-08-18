@@ -111,6 +111,16 @@ function Legend({ isSolar }) {
         <span className="inline-block h-3 w-3 rounded-full border border-light-400/40" />
         noch nicht erreicht
       </div>
+      <div className="mt-1.5 flex items-center gap-2 text-[11px] text-light-300/70">
+        <span className="inline-block h-3 w-3 rounded-full border-2 border-[#7fe9ff]" />
+        an der Lichtfront
+      </div>
+      {!isSolar && (
+        <div className="mt-1.5 flex items-center gap-2 text-[11px] text-light-300/70">
+          <span className="inline-block h-3 w-3 rounded-full border-2 border-beam" />
+          nächstes Ziel des Lichts
+        </div>
+      )}
       <div className="mt-1.5 text-[10px] text-light-300/40">
         {isSolar
           ? 'Radius logarithmisch skaliert'

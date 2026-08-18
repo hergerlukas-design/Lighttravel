@@ -6,6 +6,7 @@ import { PARSEC_IN_LY } from '../lib/constants.js'
 import { lightTimeFromKm, nf } from '../lib/lightTravel.js'
 import LightBubble from './LightBubble.jsx'
 import HomeSystem from './HomeSystem.jsx'
+import BoundaryMarkers from './BoundaryMarkers.jsx'
 
 const vertexShader = /* glsl */ `
   attribute vec3 aColor;
@@ -119,6 +120,7 @@ export default function StarFieldScene({ date, bubbleLy, fit, onSelect, selected
     <group>
       <HomeSystem date={date} fit={fit} onSelect={onSelect} selected={selected} />
       <StarPoints bubblePc={bubblePc} onSelect={onSelect} />
+      <BoundaryMarkers bubbleLy={bubbleLy} fit={fit} onSelect={onSelect} />
       <LightBubble radius={bubblePc} color="#8ab4ff" opacity={0.85} />
     </group>
   )
