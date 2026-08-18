@@ -46,7 +46,13 @@ export default function Visualization({ result, selected, setSelected }) {
               selected={selected}
             />
           ) : (
-            <StarFieldScene bubbleLy={bubbleLy} onSelect={setSelected} />
+            <StarFieldScene
+              date={result.from}
+              bubbleLy={bubbleLy}
+              fit={fit}
+              onSelect={setSelected}
+              selected={selected}
+            />
           )}
           <CameraRig distance={fit} controlsRef={controls} />
         </Suspense>

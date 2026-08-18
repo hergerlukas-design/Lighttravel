@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
 import { AdditiveBlending } from 'three'
 import { STARS, starSize } from '../lib/stars.js'
 import { PARSEC_IN_LY } from '../lib/constants.js'
 import { lightTimeFromKm, nf } from '../lib/lightTravel.js'
 import LightBubble from './LightBubble.jsx'
+import HomeSystem from './HomeSystem.jsx'
 
 const vertexShader = /* glsl */ `
   attribute vec3 aColor;
@@ -113,29 +113,13 @@ function StarPoints({ bubblePc, onSelect }) {
   )
 }
 
-function SunMarker() {
-  return (
-    <group>
-      <mesh>
-        <sphereGeometry args={[0.12, 20, 20]} />
-        <meshBasicMaterial color="#fff2c4" />
-      </mesh>
-      <Html center distanceFactor={40} position={[0, 0.5, 0]}>
-        <div className="select-none whitespace-nowrap text-[11px] font-medium text-beam">
-          Sonne
-        </div>
-      </Html>
-    </group>
-  )
-}
-
-export default function StarFieldScene({ bubbleLy, onSelect }) {
+export default function StarFieldScene({ date, bubbleLy, fit, onSelect, selected }) {
   const bubblePc = bubbleLy / PARSEC_IN_LY
   return (
     <group>
-      <SunMarker />
+      <HomeSystem date={date} fit={fit} onSelect={onSelect} selected={selected} />
       <StarPoints bubblePc={bubblePc} onSelect={onSelect} />
-      <LightBubble radius={bubblePc} color="#8ab4ff" />
+      <LightBubble radius={bubblePc} color="#8ab4ff" opacity={0.85} />
     </group>
   )
 }

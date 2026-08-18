@@ -60,6 +60,7 @@ function Sun() {
 
 function Planet({ planet, inside, selected, onSelect }) {
   const ref = useRef()
+  const isEarth = planet.name === 'Erde'
   const r = auMap(planet.distanceAu)
   const ux = planet.x / (planet.distanceAu || 1)
   const uy = planet.y / (planet.distanceAu || 1)
@@ -75,12 +76,13 @@ function Planet({ planet, inside, selected, onSelect }) {
         onClick={(e) => {
           e.stopPropagation()
           onSelect({
-            kind: 'Planet',
+            kind: isEarth ? 'Heimatplanet' : 'Planet',
             name: planet.name,
             distanceKm: planet.distanceKm,
             distanceLabel: `${nf(3).format(planet.distanceAu)} AE`,
             lightTime: lightTimeFromKm(planet.distanceKm),
             inside,
+            meta: isEarth ? 'Unser Heimatplanet' : undefined,
           })
         }}
         onPointerOver={(e) => {
@@ -104,13 +106,19 @@ function Planet({ planet, inside, selected, onSelect }) {
           <meshBasicMaterial color="#ffd76a" side={DoubleSide} transparent opacity={0.7} />
         </mesh>
       )}
+      {isEarth && (
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[size * 2.2, size * 2.6, 40]} />
+          <meshBasicMaterial color="#8ab4ff" side={DoubleSide} transparent opacity={0.85} />
+        </mesh>
+      )}
       <Html center distanceFactor={18} position={[0, size + 0.5, 0]} zIndexRange={[10, 0]}>
         <div
           className={`select-none whitespace-nowrap rounded px-1.5 py-0.5 text-[11px] font-medium tracking-wide ${
-            inside ? 'text-beam' : 'text-light-300/80'
+            isEarth ? 'text-light-200' : inside ? 'text-beam' : 'text-light-300/80'
           }`}
         >
-          {planet.name}
+          {isEarth ? 'Erde · Heimat' : planet.name}
         </div>
       </Html>
     </group>
