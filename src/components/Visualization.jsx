@@ -1,10 +1,13 @@
-import { useRef, Suspense } from 'react'
+import { useRef, useState, Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stars } from '@react-three/drei'
 import CameraRig from './CameraRig.jsx'
 import SolarSystemScene, { solarFitDistance } from './SolarSystemScene.jsx'
 import StarFieldScene, { starsFitDistance } from './StarFieldScene.jsx'
 import InfoPopup from './InfoPopup.jsx'
+import FilterPanel from './FilterPanel.jsx'
+import { DEFAULT_FILTERS } from '../lib/starFilter.js'
+import { PARSEC_IN_LY } from '../lib/constants.js'
 
 function Loader() {
   return (
@@ -20,10 +23,12 @@ function Loader() {
 export default function Visualization({ result, selected, setSelected }) {
   const controls = useRef()
   const isSolar = result.scene === 'solar'
+  const [filters, setFilters] = useState(DEFAULT_FILTERS)
 
   // Lichtblasenradius in den jeweiligen Szenen-Einheiten.
   const bubbleAu = result.au
   const bubbleLy = result.lightYears
+  const bubblePc = bubbleLy / PARSEC_IN_LY
   const fit = isSolar ? solarFitDistance(bubbleAu) : starsFitDistance(bubbleLy)
 
   return (
@@ -50,6 +55,7 @@ export default function Visualization({ result, selected, setSelected }) {
               date={result.from}
               bubbleLy={bubbleLy}
               fit={fit}
+              filters={filters}
               onSelect={setSelected}
               selected={selected}
             />
@@ -72,6 +78,9 @@ export default function Visualization({ result, selected, setSelected }) {
       <div className="pointer-events-none absolute inset-0">
         <ScaleBadge result={result} />
         <Legend isSolar={isSolar} />
+        {!isSolar && (
+          <FilterPanel filters={filters} setFilters={setFilters} bubblePc={bubblePc} />
+        )}
         <InfoPopup object={selected} onClose={() => setSelected(null)} />
         {!selected && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center text-[11px] text-light-300/40">

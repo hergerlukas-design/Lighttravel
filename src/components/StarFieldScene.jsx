@@ -4,6 +4,8 @@ import { AdditiveBlending } from 'three'
 import { STARS, starSize } from '../lib/stars.js'
 import { PARSEC_IN_LY } from '../lib/constants.js'
 import { lightTimeFromKm, nf } from '../lib/lightTravel.js'
+import { matchesStar } from '../lib/starFilter.js'
+import { constellationName } from '../lib/constellations.js'
 import LightBubble from './LightBubble.jsx'
 import HomeSystem from './HomeSystem.jsx'
 import BoundaryMarkers from './BoundaryMarkers.jsx'
@@ -12,14 +14,17 @@ const vertexShader = /* glsl */ `
   attribute vec3 aColor;
   attribute float size;
   attribute float inside;
+  attribute float visible;
   varying vec3 vColor;
   varying float vInside;
+  varying float vVisible;
   void main() {
     vColor = aColor;
     vInside = inside;
+    vVisible = visible;
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     float boost = 1.0 + inside * 1.6;
-    gl_PointSize = size * boost * (260.0 / max(-mv.z, 0.1));
+    gl_PointSize = visible * size * boost * (260.0 / max(-mv.z, 0.1));
     gl_Position = projectionMatrix * mv;
   }
 `
@@ -27,7 +32,9 @@ const vertexShader = /* glsl */ `
 const fragmentShader = /* glsl */ `
   varying vec3 vColor;
   varying float vInside;
+  varying float vVisible;
   void main() {
+    if (vVisible < 0.5) discard;
     vec2 uv = gl_PointCoord - 0.5;
     float d = length(uv);
     float core = smoothstep(0.5, 0.0, d);
@@ -38,7 +45,7 @@ const fragmentShader = /* glsl */ `
   }
 `
 
-function StarPoints({ bubblePc, onSelect }) {
+function StarPoints({ bubblePc, filters, onSelect }) {
   const geomRef = useRef()
   const { raycaster } = useThree()
 
@@ -60,17 +67,21 @@ function StarPoints({ bubblePc, onSelect }) {
   }, [])
 
   const inside = useMemo(() => new Float32Array(STARS.length), [])
+  const visible = useMemo(() => new Float32Array(STARS.length).fill(1), [])
 
-  // "inside"-Attribut aktualisieren, wenn sich der Blasenradius ändert.
+  // "inside"- und "visible"-Attribute aktualisieren, wenn sich Blasenradius
+  // oder Filter ändern.
   useEffect(() => {
     for (let i = 0; i < STARS.length; i++) {
-      inside[i] = STARS[i].distPc <= bubblePc ? 1 : 0
+      const s = STARS[i]
+      inside[i] = s.distPc <= bubblePc ? 1 : 0
+      visible[i] = matchesStar(s, filters, bubblePc) ? 1 : 0
     }
     if (geomRef.current) {
-      const attr = geomRef.current.getAttribute('inside')
-      if (attr) attr.needsUpdate = true
+      geomRef.current.getAttribute('inside').needsUpdate = true
+      geomRef.current.getAttribute('visible').needsUpdate = true
     }
-  }, [bubblePc, inside])
+  }, [bubblePc, filters, inside, visible])
 
   // Trefferradius fürs Anklicken proportional zur Kameradistanz halten.
   useFrame(({ camera }) => {
@@ -84,6 +95,8 @@ function StarPoints({ bubblePc, onSelect }) {
         const i = e.index
         if (i == null) return
         const s = STARS[i]
+        // ausgefilterte (unsichtbare) Sterne nicht auswählbar
+        if (!matchesStar(s, filters, bubblePc)) return
         onSelect({
           kind: 'Stern',
           name: s.name,
@@ -91,7 +104,9 @@ function StarPoints({ bubblePc, onSelect }) {
           distanceLabel: `${nf(2).format(s.distLy)} Lj · ${nf(2).format(s.distPc)} pc`,
           lightTime: lightTimeFromKm(s.distKm),
           inside: s.distPc <= bubblePc,
-          meta: s.spect ? `Spektraltyp ${s.spect}${s.con ? ' · ' + s.con : ''}` : s.con,
+          meta: s.spect
+            ? `Spektraltyp ${s.spect} · ${constellationName(s.con)}`
+            : constellationName(s.con),
         })
       }}
       onPointerOver={() => (document.body.style.cursor = 'pointer')}
@@ -102,6 +117,7 @@ function StarPoints({ bubblePc, onSelect }) {
         <bufferAttribute attach="attributes-aColor" count={STARS.length} array={colors} itemSize={3} />
         <bufferAttribute attach="attributes-size" count={STARS.length} array={sizes} itemSize={1} />
         <bufferAttribute attach="attributes-inside" count={STARS.length} array={inside} itemSize={1} />
+        <bufferAttribute attach="attributes-visible" count={STARS.length} array={visible} itemSize={1} />
       </bufferGeometry>
       <shaderMaterial
         vertexShader={vertexShader}
@@ -114,13 +130,13 @@ function StarPoints({ bubblePc, onSelect }) {
   )
 }
 
-export default function StarFieldScene({ date, bubbleLy, fit, onSelect, selected }) {
+export default function StarFieldScene({ date, bubbleLy, fit, filters, onSelect, selected }) {
   const bubblePc = bubbleLy / PARSEC_IN_LY
   return (
     <group>
       <HomeSystem date={date} fit={fit} onSelect={onSelect} selected={selected} />
-      <StarPoints bubblePc={bubblePc} onSelect={onSelect} />
-      <BoundaryMarkers bubbleLy={bubbleLy} fit={fit} onSelect={onSelect} />
+      <StarPoints bubblePc={bubblePc} filters={filters} onSelect={onSelect} />
+      <BoundaryMarkers bubbleLy={bubbleLy} fit={fit} filters={filters} onSelect={onSelect} />
       <LightBubble radius={bubblePc} color="#8ab4ff" opacity={0.85} />
     </group>
   )

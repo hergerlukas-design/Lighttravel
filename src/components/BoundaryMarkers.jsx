@@ -5,6 +5,7 @@ import { AdditiveBlending, DoubleSide } from 'three'
 import { STARS } from '../lib/stars.js'
 import { PARSEC_IN_LY } from '../lib/constants.js'
 import { lightTimeFromKm, nf } from '../lib/lightTravel.js'
+import { matchesContent } from '../lib/starFilter.js'
 
 const CYAN = '#7fe9ff'
 const GOLD = '#ffd76a'
@@ -13,18 +14,23 @@ const GOLD = '#ffd76a'
  * Ermittelt die Sterne nahe der Blasengrenze (Lichtfront) sowie den
  * nächsten Stern, den das Licht als Nächstes erreichen wird.
  */
-function useBoundaryStars(bubblePc) {
+function useBoundaryStars(bubblePc, filters) {
   return useMemo(() => {
     const lo = bubblePc * 0.9
     const hi = bubblePc * 1.08
-    let band = STARS.filter((s) => s.distPc >= lo && s.distPc <= hi)
+    // Inhaltliche Filter respektieren (Name, Helligkeit, Sternbild, Distanz),
+    // aber unabhängig vom Status – die Grenz-Marker SIND ihr eigener Status.
+    let band = STARS.filter(
+      (s) => s.distPc >= lo && s.distPc <= hi && matchesContent(s, filters),
+    )
     band.sort((a, b) => Math.abs(a.distPc - bubblePc) - Math.abs(b.distPc - bubblePc))
     band = band.slice(0, 48)
 
-    // STARS ist nach Distanz aufsteigend sortiert -> erster außerhalb = "als Nächstes"
+    // STARS ist nach Distanz aufsteigend sortiert -> erster passender
+    // außerhalb der Blase = "als Nächstes".
     let nextOutside = null
     for (const s of STARS) {
-      if (s.distPc > bubblePc) {
+      if (s.distPc > bubblePc && matchesContent(s, filters)) {
         nextOutside = s
         break
       }
@@ -32,7 +38,7 @@ function useBoundaryStars(bubblePc) {
     const ids = new Set(band.map((s) => s.id))
     if (nextOutside && !ids.has(nextOutside.id)) band.push(nextOutside)
     return { band, nextOutsideId: nextOutside?.id }
-  }, [bubblePc])
+  }, [bubblePc, filters])
 }
 
 function Marker({ star, size, bubblePc, frontier, onSelect }) {
@@ -128,9 +134,9 @@ function Marker({ star, size, bubblePc, frontier, onSelect }) {
   )
 }
 
-export default function BoundaryMarkers({ bubbleLy, fit, onSelect }) {
+export default function BoundaryMarkers({ bubbleLy, fit, filters, onSelect }) {
   const bubblePc = bubbleLy / PARSEC_IN_LY
-  const { band, nextOutsideId } = useBoundaryStars(bubblePc)
+  const { band, nextOutsideId } = useBoundaryStars(bubblePc, filters)
   const size = fit * 0.018
 
   return (
