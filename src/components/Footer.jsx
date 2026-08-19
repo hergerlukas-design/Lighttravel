@@ -53,7 +53,18 @@ export default function Footer() {
                 , Distanzen aus Literaturwerten
               </li>
               <li>Nahe Sternhaufen: kuratierte Auswahl (Hyaden, Coma&nbsp;Ber. u.&nbsp;a.)</li>
-              <li>Milchstraßenband: schematisch entlang der galaktischen Ebene</li>
+              <li>
+                Sternenhimmel-Hintergrund:{' '}
+                <a
+                  href="https://svs.gsfc.nasa.gov/4851"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-light-300 underline decoration-light-400/40 underline-offset-2 hover:text-white"
+                >
+                  NASA/Goddard SVS – Deep Star Map 2020
+                </a>{' '}
+                (Gaia&nbsp;DR2, gemeinfrei)
+              </li>
               <li>
                 Lichtgeschwindigkeit: 299.792,458&nbsp;km/s (exakt, SI)
               </li>
