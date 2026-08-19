@@ -28,12 +28,35 @@ Zeit – aus einem Tag wird ein Lichttag, aus einem Jahr ein Lichtjahr.
 - **Kontext-Bereich** mit Vergleichswerten (Voyager 1, Proxima Centauri, Sirius,
   Zentrum der Milchstraße …).
 
+## Gemeinsame Reise
+
+Ein eigener Abschnitt (Umschalter „Gemeinsame Reise“ in der Kopfzeile)
+visualisiert die geteilte Lichtreise zweier Menschen:
+
+- **Drei Datumsfelder** – Geburtsdatum Person A, Geburtsdatum Person B und das
+  Kennenlern-Datum (dazu optionale Namen). Die Lichtdistanz seit jedem Datum
+  wird live berechnet (gleiche Logik wie im Hauptfeature).
+- **Reisestrahl-Konzept** statt Blasen-Modell: Zwei farblich unterschiedene
+  „Lichtboten“ starten an den Geburtsdaten und fliegen durchs Sternenfeld. Am
+  Kennenlern-Datum treffen sich beide Bahnen in einem Lichtblitz und
+  verschmelzen zu einem gemeinsamen Strahl, der bis heute weiterläuft.
+- **Wegmarken** entlang der Strahlen zeigen reale Sterne (HYG), an denen das
+  Licht vorbeigezogen ist, und leuchten auf, sobald der Lichtbote sie passiert.
+- **Teilen-Funktion**: Ein Link kodiert alle drei Daten (und Namen) als
+  URL-Parameter (`?ansicht=gemeinsam&a=…&b=…&t=…`) – die Szene öffnet damit
+  direkt mit beiden Personen.
+
+Die Strahllängen sind wurzel-skaliert (rein illustrativ), damit Zeiträume von
+Tagen bis Jahrzehnten gemeinsam lesbar bleiben.
+
 ## Seitenstruktur
 
-1. **Hero** – Datum-Eingabe und Live-Ergebnisanzeige.
-2. **Visualisierung** – vollflächige 3D-Szene mit Skalen-Anzeige und Info-Popups.
-3. **Kontext** – Vergleichswerte relativ zur zurückgelegten Lichtdistanz.
-4. **Footer** – Datenquellen-Hinweise.
+1. **Kopfzeile** – Wortmarke und Umschalter zwischen Einzel- und gemeinsamer Reise.
+2. **Hero** – Datum-Eingabe und Live-Ergebnisanzeige (Einzelreise).
+3. **Visualisierung** – vollflächige 3D-Szene mit Skalen-Anzeige und Info-Popups.
+4. **Kontext** – Vergleichswerte relativ zur zurückgelegten Lichtdistanz.
+5. **Gemeinsame Reise** – geteilte Lichtreise zweier Menschen (eigener Abschnitt).
+6. **Footer** – Datenquellen-Hinweise.
 
 ## Technik
 
