@@ -1,12 +1,12 @@
 import { nf } from '../lib/lightTravel.js'
 
 const PRESETS = [
-  { label: 'Vor 1 Woche', get: () => shift({ days: 7 }) },
   { label: 'Vor 1 Monat', get: () => shift({ days: 30 }) },
   { label: 'Vor 1 Jahr', get: () => shift({ years: 1 }) },
   { label: 'Mondlandung 1969', get: () => '1969-07-20' },
-  { label: 'Vor 10 Jahren', get: () => shift({ years: 10 }) },
   { label: 'Vor 100 Jahren', get: () => shift({ years: 100 }) },
+  { label: 'Vor 500 Jahren', get: () => shift({ years: 500 }) },
+  { label: 'Christi Geburt', get: () => '0001-01-01' },
 ]
 
 function shift({ days = 0, years = 0 }) {
@@ -59,7 +59,7 @@ export default function Hero({ dateStr, setDateStr, result }) {
               type="date"
               value={dateStr}
               max={today}
-              min="1900-01-01"
+              min="0001-01-01"
               onChange={(e) => setDateStr(e.target.value)}
               className="mt-2 w-full rounded-xl border border-light-400/20 bg-space-950/70 px-4 py-3 font-display text-2xl text-light-200 outline-none transition focus:border-light-400/60 focus:ring-2 focus:ring-light-400/30"
             />

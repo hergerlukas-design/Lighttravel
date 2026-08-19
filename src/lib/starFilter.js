@@ -13,6 +13,10 @@ export const DEFAULT_FILTERS = {
   con: 'all',
   distMin: 0,
   distMax: MAX_DIST_LY,
+  // Ebenen (unabhängige An/Aus-Schalter, zählen nicht als aktive Filter)
+  showDeepSky: true,
+  showClusters: true,
+  showMilkyWay: true,
 }
 
 // Inhaltliche Filter (unabhängig von der Lichtblase).

@@ -10,6 +10,9 @@ import LightBubble from './LightBubble.jsx'
 import HomeSystem, { homeEarthPosition } from './HomeSystem.jsx'
 import BoundaryMarkers from './BoundaryMarkers.jsx'
 import ConnectionLine from './ConnectionLine.jsx'
+import DeepSkyLayer from './DeepSkyLayer.jsx'
+import ClusterLayer from './ClusterLayer.jsx'
+import MilkyWayBand from './MilkyWayBand.jsx'
 
 const vertexShader = /* glsl */ `
   attribute vec3 aColor;
@@ -137,8 +140,11 @@ export default function StarFieldScene({ date, bubbleLy, fit, filters, onSelect,
   const earthPos = homeEarthPosition(date, fit)
   return (
     <group>
+      <MilkyWayBand fit={fit} filters={filters} />
       <HomeSystem date={date} fit={fit} onSelect={onSelect} selected={selected} />
       <StarPoints bubblePc={bubblePc} filters={filters} onSelect={onSelect} />
+      <DeepSkyLayer bubbleLy={bubbleLy} fit={fit} filters={filters} onSelect={onSelect} />
+      <ClusterLayer bubbleLy={bubbleLy} fit={fit} filters={filters} onSelect={onSelect} />
       <BoundaryMarkers bubbleLy={bubbleLy} fit={fit} filters={filters} onSelect={onSelect} />
       <LightBubble radius={bubblePc} color="#8ab4ff" opacity={0.85} />
       <ConnectionLine from={earthPos} to={selected?.pos} />

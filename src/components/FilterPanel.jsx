@@ -188,6 +188,28 @@ export default function FilterPanel({ filters, setFilters, bubblePc }) {
             </div>
           </div>
 
+          {/* Ebenen */}
+          <div className="space-y-2 border-t border-light-400/10 pt-3">
+            <div className="text-[11px] uppercase tracking-wider text-light-300/50">
+              Ebenen
+            </div>
+            <Toggle
+              checked={filters.showDeepSky}
+              onChange={(v) => patch({ showDeepSky: v })}
+              label="Deep-Sky-Objekte (Messier)"
+            />
+            <Toggle
+              checked={filters.showClusters}
+              onChange={(v) => patch({ showClusters: v })}
+              label="Nahe Sternhaufen"
+            />
+            <Toggle
+              checked={filters.showMilkyWay}
+              onChange={(v) => patch({ showMilkyWay: v })}
+              label="Milchstraßenband"
+            />
+          </div>
+
           {/* Fußzeile */}
           <div className="flex items-center justify-between border-t border-light-400/10 pt-3">
             <span className="text-xs text-light-300/60">

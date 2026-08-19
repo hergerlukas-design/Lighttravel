@@ -67,7 +67,7 @@ function Sun() {
   )
 }
 
-function Planet({ planet, inside, boundary, selected, onSelect }) {
+function Planet({ planet, inside, boundary, distEarthAu, selected, onSelect }) {
   const ref = useRef()
   const boundaryRing = useRef()
   const isEarth = planet.name === 'Erde'
@@ -80,6 +80,7 @@ function Planet({ planet, inside, boundary, selected, onSelect }) {
   })
   const pos = planetScenePos(planet)
   const size = planet.size * 0.32
+  const distEarthKm = distEarthAu * AU_KM
 
   return (
     <group position={pos}>
@@ -90,14 +91,16 @@ function Planet({ planet, inside, boundary, selected, onSelect }) {
           onSelect({
             kind: isEarth ? 'Heimatplanet' : 'Planet',
             name: planet.name,
-            distanceKm: planet.distanceKm,
-            distanceLabel: `${nf(3).format(planet.distanceAu)} AE`,
-            lightTime: lightTimeFromKm(planet.distanceKm),
+            distanceKm: isEarth ? 0 : distEarthKm,
+            distanceLabel: isEarth
+              ? 'dein Standort'
+              : `${nf(3).format(distEarthAu)} AE von der Erde`,
+            lightTime: isEarth ? '—' : lightTimeFromKm(distEarthKm),
             inside,
             boundary,
             pos,
             meta: isEarth
-              ? 'Unser Heimatplanet'
+              ? 'Unser Heimatplanet – Ursprung der Lichtblase'
               : boundary
                 ? 'Nahe der Lichtfront'
                 : undefined,
@@ -155,23 +158,36 @@ export default function SolarSystemScene({ date, bubbleAu, onSelect, selected })
   const earth = planets.find((p) => p.name === 'Erde')
   const earthPos = earth ? planetScenePos(earth) : [0, 0, 0]
 
+  // Distanz jedes Planeten von der ERDE (die Lichtblase geht von der Erde aus).
+  const distFromEarth = (p) => {
+    if (!earth) return p.distanceAu
+    return Math.hypot(p.x - earth.x, p.y - earth.y, p.z - earth.z)
+  }
+
   return (
     <group>
       <Sun />
       {planets.map((p) => (
         <OrbitRing key={`ring-${p.name}`} radius={auMap(p.semiMajorAu)} />
       ))}
-      {planets.map((p) => (
-        <Planet
-          key={p.name}
-          planet={p}
-          inside={bubbleAu >= p.distanceAu}
-          boundary={Math.abs(p.distanceAu - bubbleAu) <= bubbleAu * 0.18}
-          selected={selected?.name === p.name}
-          onSelect={onSelect}
-        />
-      ))}
-      <LightBubble radius={bubbleR} />
+      {planets.map((p) => {
+        const dE = distFromEarth(p)
+        return (
+          <Planet
+            key={p.name}
+            planet={p}
+            distEarthAu={dE}
+            inside={bubbleAu >= dE}
+            boundary={Math.abs(dE - bubbleAu) <= bubbleAu * 0.18}
+            selected={selected?.name === p.name}
+            onSelect={onSelect}
+          />
+        )
+      })}
+      {/* Lichtblase geht von der Erde aus */}
+      <group position={earthPos}>
+        <LightBubble radius={bubbleR} />
+      </group>
       <ConnectionLine from={earthPos} to={selected?.pos} />
     </group>
   )

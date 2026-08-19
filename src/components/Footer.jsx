@@ -41,6 +41,20 @@ export default function Footer() {
                 </a>
               </li>
               <li>
+                Deep-Sky-Objekte: Messier-Katalog (110), Positionen/Typen aus{' '}
+                <a
+                  href="https://github.com/mattiaverga/OpenNGC"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-light-300 underline decoration-light-400/40 underline-offset-2 hover:text-white"
+                >
+                  OpenNGC
+                </a>
+                , Distanzen aus Literaturwerten
+              </li>
+              <li>Nahe Sternhaufen: kuratierte Auswahl (Hyaden, Coma&nbsp;Ber. u.&nbsp;a.)</li>
+              <li>Milchstraßenband: schematisch entlang der galaktischen Ebene</li>
+              <li>
                 Lichtgeschwindigkeit: 299.792,458&nbsp;km/s (exakt, SI)
               </li>
               <li>Voyager-1-Distanz: NASA/JPL (genähert)</li>
