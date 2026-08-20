@@ -12,19 +12,129 @@ body,
   height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  background-color: #04040c;
-  color: #e8ecff;
+  background-color: theme('colors.space.975');
+  color: theme('colors.light.100');
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Native date input tweaks for the dark theme */
+::selection {
+  background: rgba(255, 215, 106, 0.28);
+  color: #fff;
+}
+
+/* Ein sichtbarer, einheitlicher Fokusring für Tastaturbedienung. */
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: 2px solid theme('colors.light.400');
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Datumsfelder im dunklen Layout lesbar halten. */
 input[type='date']::-webkit-calendar-picker-indicator {
-  filter: invert(0.8);
+  filter: invert(0.85);
   cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+input[type='date']:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* Regler in Akzentfarbe, mit greifbarem Griff. */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1.25rem;
+  background: transparent;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: rgba(138, 180, 255, 0.2);
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -0.3125rem;
+  height: 0.875rem;
+  width: 0.875rem;
+  border-radius: 999px;
+  background: theme('colors.beam.DEFAULT');
+  box-shadow: 0 0 0 3px rgba(255, 215, 106, 0.18);
+}
+input[type='range']::-moz-range-track {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: rgba(138, 180, 255, 0.2);
+}
+input[type='range']::-moz-range-thumb {
+  height: 0.875rem;
+  width: 0.875rem;
+  border: none;
+  border-radius: 999px;
+  background: theme('colors.beam.DEFAULT');
+  box-shadow: 0 0 0 3px rgba(255, 215, 106, 0.18);
+}
+
+@layer components {
+  /* Flächen ------------------------------------------------------------- */
+
+  /* Grundfläche für Karten und Eingabeblöcke. */
+  .panel {
+    @apply rounded-2xl border border-light-400/10 bg-space-900/55 shadow-panel backdrop-blur-md;
+  }
+
+  /* Hervorgehobene Fläche (Ergebnisse, Kernaussagen). */
+  .panel-accent {
+    @apply rounded-2xl border border-beam/25 bg-gradient-to-br from-space-800/80 to-space-900/70 shadow-panel backdrop-blur-md;
+  }
+
+  /* Kleine schwebende Fläche über der 3D-Szene. */
+  .hud {
+    @apply rounded-xl border border-light-400/10 bg-space-950/80 px-3 py-2 shadow-hud backdrop-blur-md;
+  }
+
+  /* Bedienelemente ------------------------------------------------------ */
+
+  .chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-light-400/20 bg-space-800/60 px-3 py-1.5 text-xs font-medium text-light-300/85
+      transition hover:border-light-400/45 hover:bg-space-700/60 hover:text-white;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-beam/40 bg-beam/10 px-4 py-3 text-sm font-semibold text-beam
+      transition hover:border-beam/70 hover:bg-beam/20 hover:shadow-beam;
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-light-400/20 bg-space-975/70 px-4 py-3 text-light-100 outline-none transition
+      placeholder:text-light-300/30 hover:border-light-400/35 focus:border-light-400/70 focus:ring-2 focus:ring-light-400/25;
+  }
+
+  /* Typografie ---------------------------------------------------------- */
+
+  /* Kleines Großbuchstaben-Label über Werten. */
+  .label {
+    @apply text-[11px] font-medium uppercase tracking-label text-light-300/65;
+  }
+
+  /* Große Zahl im Ergebnisblock. */
+  .figure {
+    @apply font-display font-bold tabular-nums text-beam;
+  }
+
+  .link-subtle {
+    @apply text-light-300 underline decoration-light-400/40 underline-offset-2 transition hover:text-white hover:decoration-light-400;
+  }
 }
 
 @layer utilities {
@@ -32,25 +142,77 @@ input[type='date']::-webkit-calendar-picker-indicator {
     text-wrap: balance;
   }
 
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Feines Sternenfeld als CSS-Hintergrund (kein zusätzliches Bild). */
   .starfield-bg {
     background-image:
-      radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.6), transparent),
-      radial-gradient(1px 1px at 70% 60%, rgba(255, 255, 255, 0.5), transparent),
-      radial-gradient(1.5px 1.5px at 40% 80%, rgba(180, 200, 255, 0.5), transparent),
-      radial-gradient(1px 1px at 85% 20%, rgba(255, 255, 255, 0.4), transparent),
-      radial-gradient(1px 1px at 55% 15%, rgba(200, 210, 255, 0.4), transparent);
+      radial-gradient(1px 1px at 12% 22%, rgba(255, 255, 255, 0.7), transparent),
+      radial-gradient(1px 1px at 20% 62%, rgba(255, 255, 255, 0.45), transparent),
+      radial-gradient(1.5px 1.5px at 38% 18%, rgba(190, 210, 255, 0.55), transparent),
+      radial-gradient(1px 1px at 47% 78%, rgba(255, 255, 255, 0.4), transparent),
+      radial-gradient(1px 1px at 63% 35%, rgba(200, 210, 255, 0.5), transparent),
+      radial-gradient(1.5px 1.5px at 76% 68%, rgba(255, 255, 255, 0.45), transparent),
+      radial-gradient(1px 1px at 85% 14%, rgba(255, 255, 255, 0.5), transparent),
+      radial-gradient(1px 1px at 93% 52%, rgba(180, 200, 255, 0.4), transparent);
+  }
+
+  /* Weiches Farblicht am oberen Rand eines Abschnitts. */
+  .aurora-blue {
+    background:
+      radial-gradient(58% 42% at 50% -6%, rgba(138, 180, 255, 0.16), transparent 72%),
+      radial-gradient(38% 30% at 82% 8%, rgba(127, 233, 255, 0.08), transparent 70%);
+  }
+
+  .aurora-beam {
+    background:
+      radial-gradient(58% 42% at 50% -6%, rgba(255, 215, 106, 0.14), transparent 72%),
+      radial-gradient(38% 30% at 18% 8%, rgba(138, 180, 255, 0.1), transparent 70%);
+  }
+
+  /* Haarfeine Trennlinie, die zu den Rändern hin ausblendet. */
+  .rule-fade {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(138, 180, 255, 0.22) 25%,
+      rgba(138, 180, 255, 0.22) 75%,
+      transparent
+    );
   }
 }
 
-/* Thin scrollbars in dark UI */
+/* Schlanke Scrollbalken im dunklen Layout. */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
-  background: rgba(138, 180, 255, 0.25);
+  background: rgba(138, 180, 255, 0.22);
   border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(138, 180, 255, 0.4);
+  background-clip: content-box;
+}
+
+/* Bewegung reduzieren, wenn das System es verlangt. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

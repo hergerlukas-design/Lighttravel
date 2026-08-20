@@ -1,38 +1,24 @@
+import { AU_KM, LIGHT_YEAR_KM } from '../lib/constants.js'
 import {
-  AU_KM,
-  LIGHT_YEAR_KM,
-} from '../lib/constants.js'
-import { voyager1DistanceKm, lightTimeFromKm, nf } from '../lib/lightTravel.js'
+  voyager1DistanceKm,
+  lightTimeFromKm,
+  kmCompact,
+  kmExact,
+  formatRatio,
+} from '../lib/lightTravel.js'
 
 /** Baut die Vergleichsobjekte relativ zum aktuellen Ergebnis. */
 function references(now) {
-  const voyKm = voyager1DistanceKm(now)
   return [
-    {
-      name: 'Sonne → Erde',
-      note: 'Eine Astronomische Einheit',
-      km: AU_KM,
-    },
-    {
-      name: 'Sonne → Neptun',
-      note: 'Rand des Planetensystems',
-      km: 30.07 * AU_KM,
-    },
+    { name: 'Sonne → Erde', note: 'Eine Astronomische Einheit', km: AU_KM },
+    { name: 'Sonne → Neptun', note: 'Rand des Planetensystems', km: 30.07 * AU_KM },
     {
       name: 'Voyager 1',
       note: 'am weitesten entferntes Raumschiff',
-      km: voyKm,
+      km: voyager1DistanceKm(now),
     },
-    {
-      name: 'Proxima Centauri',
-      note: 'nächster Stern',
-      km: 4.2465 * LIGHT_YEAR_KM,
-    },
-    {
-      name: 'Sirius',
-      note: 'hellster Stern am Nachthimmel',
-      km: 8.6 * LIGHT_YEAR_KM,
-    },
+    { name: 'Proxima Centauri', note: 'nächster Stern', km: 4.2465 * LIGHT_YEAR_KM },
+    { name: 'Sirius', note: 'hellster Stern am Nachthimmel', km: 8.6 * LIGHT_YEAR_KM },
     {
       name: 'Zentrum der Milchstraße',
       note: 'Sagittarius A*',
@@ -41,51 +27,45 @@ function references(now) {
   ]
 }
 
-function ratioText(x) {
-  if (x >= 1) {
-    if (x >= 100) return `${nf(0).format(x)}×`
-    return `${nf(1).format(x)}×`
-  }
-  return `${nf(x < 0.01 ? 4 : 2).format(x)}×`
+/**
+ * Füllstand der Fortschrittsleiste. Zwischen der Erdbahn und dem Zentrum der
+ * Milchstraße liegen über zehn Zehnerpotenzen – linear wären fast alle Balken
+ * unsichtbar. Deshalb bildet die Leiste sechs Zehnerpotenzen logarithmisch ab.
+ */
+function barFill(ratio) {
+  if (!Number.isFinite(ratio) || ratio <= 0) return 0
+  if (ratio >= 1) return 1
+  return Math.max(0.012, Math.min(1, (Math.log10(ratio) + 6) / 6))
 }
 
 export default function ContextSection({ result }) {
   const refs = references(result.to)
-  return (
-    <section className="relative mx-auto max-w-5xl px-6 py-16">
-      <div className="text-center">
-        <h2 className="font-display text-3xl font-bold text-light-200 sm:text-4xl">
-          Ein Gefühl für die Distanz
-        </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-light-300/70">
-          Die zurückgelegte Lichtdistanz im Vergleich zu bekannten Wegmarken im
-          Kosmos. Grün bedeutet: dein Lichtstrahl hat diese Marke bereits
-          überholt.
-        </p>
-      </div>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  return (
+    <>
+      <div className="mt-12 grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {refs.map((ref) => {
           const ratio = result.km / ref.km
           const reached = ratio >= 1
           return (
-            <div
+            <article
               key={ref.name}
-              className={`rounded-2xl border p-5 backdrop-blur-md transition ${
+              className={`flex h-full flex-col rounded-2xl border p-5 shadow-panel backdrop-blur-md transition ${
                 reached
-                  ? 'border-emerald-400/30 bg-emerald-500/5'
-                  : 'border-light-400/15 bg-space-900/50'
+                  ? 'border-emerald-400/30 bg-emerald-500/[0.06] hover:border-emerald-400/50'
+                  : 'border-light-400/10 bg-space-900/50 hover:border-light-400/30'
               }`}
             >
-              <div className="flex items-start justify-between gap-3">
+              {/* Kopf: feste Mindesthöhe, damit alle Karten gleich takten. */}
+              <header className="flex min-h-[3.5rem] items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-display text-lg font-semibold text-light-200">
+                  <h3 className="font-display text-lg font-semibold leading-tight text-light-100">
                     {ref.name}
                   </h3>
-                  <p className="text-xs text-light-300/60">{ref.note}</p>
+                  <p className="mt-0.5 text-xs text-light-300/60">{ref.note}</p>
                 </div>
                 <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
                     reached
                       ? 'bg-emerald-400/20 text-emerald-300'
                       : 'bg-light-400/10 text-light-300/70'
@@ -93,38 +73,64 @@ export default function ContextSection({ result }) {
                 >
                   {reached ? 'überholt' : 'noch nicht'}
                 </span>
+              </header>
+
+              {/* Fortschritt des eigenen Lichts bis zu dieser Wegmarke. */}
+              <div
+                className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]"
+                role="img"
+                aria-label={`Dein Licht ist ${formatRatio(ratio)} so weit wie ${ref.name}`}
+              >
+                <div
+                  className={`relative h-full rounded-full ${
+                    reached
+                      ? 'bg-gradient-to-r from-emerald-400/70 to-emerald-300'
+                      : 'bg-gradient-to-r from-beam/50 to-beam'
+                  }`}
+                  style={{ width: `${barFill(ratio) * 100}%` }}
+                >
+                  {reached && (
+                    <span className="absolute inset-y-0 w-1/3 animate-sheen bg-white/25 blur-[2px]" />
+                  )}
+                </div>
               </div>
-              <dl className="mt-4 space-y-1.5 text-sm">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-light-300/55">Entfernung</dt>
-                  <dd className="text-light-200">
-                    {nf(0).format(Math.round(ref.km))} km
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-light-300/55">Lichtlaufzeit</dt>
-                  <dd className="text-light-200">{lightTimeFromKm(ref.km)}</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-light-300/55">Dein Licht</dt>
+
+              <dl className="mt-4 flex flex-1 flex-col gap-2 text-sm">
+                <Row label="Entfernung" value={kmCompact(ref.km)} title={kmExact(ref.km)} />
+                <Row label="Lichtlaufzeit" value={lightTimeFromKm(ref.km)} />
+                <div className="mt-auto flex items-baseline justify-between gap-3 border-t border-white/[0.06] pt-2">
+                  <dt className="text-light-300/60">Dein Licht</dt>
                   <dd
-                    className={`font-semibold ${
+                    className={`font-semibold tabular-nums ${
                       reached ? 'text-emerald-300' : 'text-beam'
                     }`}
                   >
-                    {ratioText(ratio)} so weit
+                    {formatRatio(ratio)} so weit
                   </dd>
                 </div>
               </dl>
-            </div>
+            </article>
           )
         })}
       </div>
 
-      <p className="mt-6 text-center text-xs text-light-300/40">
-        Voyager-1-Distanz aus linearem Modell (≈ 166&nbsp;AE Anfang 2025,
-        3,57&nbsp;AE/Jahr); übrige Werte gerundete Literaturwerte.
+      <p className="mx-auto mt-8 max-w-prose text-center text-xs leading-relaxed text-light-300/50">
+        Die Balken zeigen sechs Zehnerpotenzen logarithmisch – linear wären die
+        kurzen Strecken nicht sichtbar. Voyager-1-Distanz aus linearem Modell
+        (≈ 166&nbsp;AE Anfang 2025, 3,57&nbsp;AE/Jahr); übrige Werte gerundete
+        Literaturwerte. Für die exakte Kilometerzahl auf einen Wert zeigen.
       </p>
-    </section>
+    </>
+  )
+}
+
+function Row({ label, value, title }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className="text-light-300/60">{label}</dt>
+      <dd className="text-right tabular-nums text-light-100" title={title}>
+        {value}
+      </dd>
+    </div>
   )
 }
