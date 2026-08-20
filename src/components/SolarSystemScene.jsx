@@ -1,12 +1,34 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
-import { DoubleSide } from 'three'
+import { Html, useTexture } from '@react-three/drei'
+import { DoubleSide, SRGBColorSpace } from 'three'
 import { planetPositions } from '../lib/astronomy.js'
 import { lightTimeFromKm, nf } from '../lib/lightTravel.js'
 import { AU_KM } from '../lib/constants.js'
 import LightBubble from './LightBubble.jsx'
 import ConnectionLine from './ConnectionLine.jsx'
+
+const B = import.meta.env.BASE_URL
+// Datei-Basisname je Planetenname.
+const TEX_FILE = {
+  Merkur: 'mercury', Venus: 'venus', Erde: 'earth', Mars: 'mars',
+  Jupiter: 'jupiter', Saturn: 'saturn', Uranus: 'uranus', Neptun: 'neptune',
+}
+// Achsneigung (Grad) und Rotationsrichtung.
+const TILT = {
+  Merkur: 0.03, Venus: 177.4, Erde: 23.4, Mars: 25.2,
+  Jupiter: 3.1, Saturn: 26.7, Uranus: 97.8, Neptun: 28.3,
+}
+// alle Planeten- + Sonnen-Texturen auf einmal laden (eine Suspense-Grenze)
+function usePlanetTextures() {
+  const urls = { sun: `${B}textures/planets/sun.jpg`, saturnring: `${B}textures/planets/saturnring.png` }
+  for (const f of Object.values(TEX_FILE)) urls[f] = `${B}textures/planets/${f}.jpg`
+  const tex = useTexture(urls)
+  useMemo(() => {
+    for (const k in tex) if (k !== 'saturnring') tex[k].colorSpace = SRGBColorSpace
+  }, [tex])
+  return tex
+}
 
 // Logarithmische Radial-Abbildung: echte AU-Distanz → Szenen-Einheiten.
 // Bewahrt die reale Winkelkonfiguration der Planeten zum Datum, komprimiert
@@ -51,13 +73,17 @@ function OrbitRing({ radius }) {
   )
 }
 
-function Sun() {
+function Sun({ tex }) {
+  const ref = useRef()
+  useFrame((_, dt) => {
+    if (ref.current) ref.current.rotation.y += dt * 0.03
+  })
   return (
     <group>
       <pointLight intensity={2.4} distance={0} decay={0} color="#fff4d6" />
-      <mesh>
-        <sphereGeometry args={[0.6, 32, 32]} />
-        <meshBasicMaterial color="#fff2c4" />
+      <mesh ref={ref}>
+        <sphereGeometry args={[0.6, 48, 48]} />
+        <meshBasicMaterial map={tex} color="#fff0d0" />
       </mesh>
       <mesh>
         <sphereGeometry args={[1.0, 32, 32]} />
@@ -67,60 +93,68 @@ function Sun() {
   )
 }
 
-function Planet({ planet, inside, boundary, distEarthAu, selected, onSelect }) {
-  const ref = useRef()
+function Planet({ planet, inside, boundary, distEarthAu, selected, onSelect, tex, ringTex }) {
   const boundaryRing = useRef()
+  const spin = useRef()
   const isEarth = planet.name === 'Erde'
+  const isSaturn = planet.name === 'Saturn'
+  const tiltRad = ((TILT[planet.name] || 0) * Math.PI) / 180
 
-  useFrame((state) => {
+  useFrame((state, dt) => {
     if (boundaryRing.current) {
       const p = 1 + Math.sin(state.clock.elapsedTime * 2.4) * 0.18
       boundaryRing.current.scale.setScalar(p)
     }
+    if (spin.current) spin.current.rotation.y += dt * 0.12
   })
   const pos = planetScenePos(planet)
   const size = planet.size * 0.32
   const distEarthKm = distEarthAu * AU_KM
 
+  const select = (e) => {
+    e.stopPropagation()
+    onSelect({
+      kind: isEarth ? 'Heimatplanet' : 'Planet',
+      name: planet.name,
+      distanceKm: isEarth ? 0 : distEarthKm,
+      distanceLabel: isEarth
+        ? 'dein Standort'
+        : `${nf(3).format(distEarthAu)} AE von der Erde`,
+      lightTime: isEarth ? '—' : lightTimeFromKm(distEarthKm),
+      inside,
+      boundary,
+      pos,
+      meta: isEarth
+        ? 'Unser Heimatplanet – Ursprung der Lichtblase'
+        : boundary
+          ? 'Nahe der Lichtfront'
+          : undefined,
+    })
+  }
+
   return (
     <group position={pos}>
-      <mesh
-        ref={ref}
-        onClick={(e) => {
-          e.stopPropagation()
-          onSelect({
-            kind: isEarth ? 'Heimatplanet' : 'Planet',
-            name: planet.name,
-            distanceKm: isEarth ? 0 : distEarthKm,
-            distanceLabel: isEarth
-              ? 'dein Standort'
-              : `${nf(3).format(distEarthAu)} AE von der Erde`,
-            lightTime: isEarth ? '—' : lightTimeFromKm(distEarthKm),
-            inside,
-            boundary,
-            pos,
-            meta: isEarth
-              ? 'Unser Heimatplanet – Ursprung der Lichtblase'
-              : boundary
-                ? 'Nahe der Lichtfront'
-                : undefined,
-          })
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation()
-          document.body.style.cursor = 'pointer'
-        }}
-        onPointerOut={() => (document.body.style.cursor = 'auto')}
-        scale={selected ? 1.4 : 1}
-      >
-        <sphereGeometry args={[size, 24, 24]} />
-        <meshStandardMaterial
-          color={planet.color}
-          emissive={planet.color}
-          emissiveIntensity={inside ? 0.8 : 0.15}
-          roughness={0.7}
-        />
-      </mesh>
+      {/* Achsneigung + Eigenrotation */}
+      <group rotation={[0, 0, tiltRad]} scale={selected ? 1.4 : 1}>
+        <mesh
+          ref={spin}
+          onClick={select}
+          onPointerOver={(e) => {
+            e.stopPropagation()
+            document.body.style.cursor = 'pointer'
+          }}
+          onPointerOut={() => (document.body.style.cursor = 'auto')}
+        >
+          <sphereGeometry args={[size, 48, 48]} />
+          <meshStandardMaterial map={tex} roughness={1} metalness={0} />
+        </mesh>
+        {isSaturn && ringTex && (
+          <mesh rotation={[Math.PI / 2, 0, 0]} onClick={select}>
+            <ringGeometry args={[size * 1.35, size * 2.3, 64]} />
+            <meshBasicMaterial map={ringTex} side={DoubleSide} transparent depthWrite={false} />
+          </mesh>
+        )}
+      </group>
       {inside && (
         <mesh>
           <ringGeometry args={[size * 1.5, size * 1.9, 32]} />
@@ -154,6 +188,7 @@ function Planet({ planet, inside, boundary, distEarthAu, selected, onSelect }) {
 
 export default function SolarSystemScene({ date, bubbleAu, onSelect, selected }) {
   const planets = useMemo(() => planetPositions(date), [date])
+  const tex = usePlanetTextures()
   const bubbleR = auMap(bubbleAu)
   const earth = planets.find((p) => p.name === 'Erde')
   const earthPos = earth ? planetScenePos(earth) : [0, 0, 0]
@@ -166,7 +201,7 @@ export default function SolarSystemScene({ date, bubbleAu, onSelect, selected })
 
   return (
     <group>
-      <Sun />
+      <Sun tex={tex.sun} />
       {planets.map((p) => (
         <OrbitRing key={`ring-${p.name}`} radius={auMap(p.semiMajorAu)} />
       ))}
@@ -176,6 +211,8 @@ export default function SolarSystemScene({ date, bubbleAu, onSelect, selected })
           <Planet
             key={p.name}
             planet={p}
+            tex={tex[TEX_FILE[p.name]]}
+            ringTex={tex.saturnring}
             distEarthAu={dE}
             inside={bubbleAu >= dE}
             boundary={Math.abs(dE - bubbleAu) <= bubbleAu * 0.18}
