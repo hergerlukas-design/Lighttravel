@@ -130,4 +130,45 @@ export function lightTimeFromKm(km) {
   return `${nf(2).format(s / SEC_PER_YEAR)} Jahre`
 }
 
+/**
+ * Sehr große Kilometerwerte lesbar machen. 40174991951814 km sagt niemandem
+ * etwas – "40,17 Billionen km" schon. Der exakte Wert bleibt über
+ * `kmExact` verfügbar und wird in der Oberfläche als Tooltip gezeigt.
+ */
+const KM_SCALES = [
+  { at: 1e18, word: 'Trillionen' },
+  { at: 1e15, word: 'Billiarden' },
+  { at: 1e12, word: 'Billionen' },
+  { at: 1e9, word: 'Milliarden' },
+  { at: 1e6, word: 'Millionen' },
+]
+
+export function kmCompact(km) {
+  const v = Math.max(0, km)
+  for (const s of KM_SCALES) {
+    if (v >= s.at) return `${nf(2).format(v / s.at)} ${s.word} km`
+  }
+  return `${nf(0).format(Math.round(v))} km`
+}
+
+/** Vollständige Kilometerzahl mit Tausenderpunkten. */
+export function kmExact(km) {
+  return `${nf(0).format(Math.round(Math.max(0, km)))} km`
+}
+
+/**
+ * Verhältnis "so weit wie". Kleine Werte dürfen nicht auf 0 gerundet werden –
+ * bis zum Zentrum der Milchstraße liegen sechs Zehnerpotenzen dazwischen.
+ */
+export function formatRatio(x) {
+  if (!Number.isFinite(x) || x <= 0) return '0×'
+  if (x >= 100) return `${nf(0).format(x)}×`
+  if (x >= 1) return `${nf(1).format(x)}×`
+  if (x >= 0.01) return `${nf(2).format(x)}×`
+  const digits = new Intl.NumberFormat('de-DE', {
+    maximumSignificantDigits: 2,
+  }).format(x)
+  return `${digits}×`
+}
+
 export { nf }

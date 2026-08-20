@@ -80,17 +80,37 @@ export default function Visualization({ result, selected, setSelected }) {
         />
       </Canvas>
 
+      {/* Vignette: hält die Overlays vom Szeneninhalt lesbar getrennt. */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(2,2,8,0.55) 100%)',
+        }}
+        aria-hidden="true"
+      />
+
       {/* Overlays */}
       <div className="pointer-events-none absolute inset-0">
-        <ScaleBadge result={result} />
+        {/* Linke Spalte: Maßstab und Filter stapeln sich, ohne feste Offsets. */}
+        <div className="absolute inset-y-3 left-3 flex w-[min(17rem,calc(100%-1.5rem))] flex-col gap-2 sm:inset-y-4 sm:left-4">
+          <ScaleBadge result={result} />
+          {!isSolar && (
+            <FilterPanel filters={filters} setFilters={setFilters} bubblePc={bubblePc} />
+          )}
+        </div>
+
         <Legend isSolar={isSolar} />
-        {!isSolar && (
-          <FilterPanel filters={filters} setFilters={setFilters} bubblePc={bubblePc} />
-        )}
         <InfoPopup object={selected} onClose={() => setSelected(null)} />
+
         {!selected && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center text-[11px] text-light-300/40">
-            Ziehen zum Drehen · Scrollen zum Zoomen · Objekt anklicken für Details
+          <div className="absolute inset-x-3 bottom-3 flex justify-center sm:bottom-4">
+            <p className="rounded-full border border-light-400/10 bg-space-975/70 px-3 py-1.5 text-center text-[11px] text-light-300/60 backdrop-blur-sm">
+              <span className="sm:hidden">Ziehen · Zoomen · Antippen</span>
+              <span className="hidden sm:inline">
+                Ziehen zum Drehen · Scrollen zum Zoomen · Objekt anklicken
+              </span>
+            </p>
           </div>
         )}
       </div>
@@ -100,46 +120,45 @@ export default function Visualization({ result, selected, setSelected }) {
 
 function ScaleBadge({ result }) {
   return (
-    <div className="absolute left-4 top-4 rounded-lg border border-light-400/15 bg-space-900/70 px-3 py-2 backdrop-blur-md">
-      <div className="text-[10px] uppercase tracking-widest text-light-300/50">
-        Ansicht
-      </div>
-      <div className="font-display text-sm font-semibold text-light-200">
+    <div className="hud shrink-0">
+      <div className="label text-[10px] text-light-300/50">Ansicht</div>
+      <div className="font-display text-sm font-semibold text-light-100">
         {result.scene === 'solar' ? 'Sonnensystem' : 'Sternenkarte'}
       </div>
-      <div className="mt-1 text-[11px] text-light-300/60">
-        Lichtblase: {result.distance.display}{' '}
-        <span className="text-light-300/45">{result.distance.unit}</span>
+      <div className="mt-1.5 flex items-baseline gap-1.5 border-t border-white/[0.07] pt-1.5">
+        <span className="text-[11px] text-light-300/55">Lichtblase</span>
+        <span className="text-[13px] font-semibold tabular-nums text-beam">
+          {result.distance.display}
+        </span>
+        <span className="text-[11px] text-light-300/55">{result.distance.unit}</span>
       </div>
     </div>
   )
 }
 
+const LEGEND_ITEMS = [
+  { cls: 'bg-beam/60 ring-1 ring-beam', label: 'im Lichtkegel' },
+  { cls: 'border border-light-400/40', label: 'noch nicht erreicht' },
+  { cls: 'border-2 border-front', label: 'an der Lichtfront' },
+]
+
 function Legend({ isSolar }) {
+  const items = isSolar
+    ? LEGEND_ITEMS
+    : [...LEGEND_ITEMS, { cls: 'border-2 border-beam', label: 'nächstes Ziel des Lichts' }]
+
   return (
-    <div className="absolute right-4 top-4 hidden rounded-lg border border-light-400/15 bg-space-900/70 px-3 py-2 backdrop-blur-md sm:block">
-      <div className="flex items-center gap-2 text-[11px] text-light-300/70">
-        <span className="inline-block h-3 w-3 rounded-full bg-beam/60 ring-1 ring-beam" />
-        im Lichtkegel
-      </div>
-      <div className="mt-1.5 flex items-center gap-2 text-[11px] text-light-300/70">
-        <span className="inline-block h-3 w-3 rounded-full border border-light-400/40" />
-        noch nicht erreicht
-      </div>
-      <div className="mt-1.5 flex items-center gap-2 text-[11px] text-light-300/70">
-        <span className="inline-block h-3 w-3 rounded-full border-2 border-[#7fe9ff]" />
-        an der Lichtfront
-      </div>
-      {!isSolar && (
-        <div className="mt-1.5 flex items-center gap-2 text-[11px] text-light-300/70">
-          <span className="inline-block h-3 w-3 rounded-full border-2 border-beam" />
-          nächstes Ziel des Lichts
-        </div>
-      )}
-      <div className="mt-1.5 text-[10px] text-light-300/40">
-        {isSolar
-          ? 'Radius logarithmisch skaliert'
-          : 'Koordinaten in Parsec (HYG)'}
+    <div className="hud absolute right-3 top-3 hidden sm:right-4 sm:top-4 sm:block">
+      <ul className="space-y-1.5">
+        {items.map((i) => (
+          <li key={i.label} className="flex items-center gap-2 text-[11px] text-light-300/75">
+            <span className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${i.cls}`} />
+            {i.label}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 border-t border-white/[0.07] pt-1.5 text-[10px] text-light-300/45">
+        {isSolar ? 'Radius logarithmisch skaliert' : 'Koordinaten in Parsec (HYG)'}
       </div>
     </div>
   )

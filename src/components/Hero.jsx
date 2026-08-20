@@ -1,4 +1,5 @@
-import { nf } from '../lib/lightTravel.js'
+import { kmCompact, kmExact } from '../lib/lightTravel.js'
+import { Shell } from './Section.jsx'
 
 const PRESETS = [
   { label: 'Vor 1 Monat', get: () => shift({ days: 30 }) },
@@ -21,37 +22,33 @@ export default function Hero({ dateStr, setDateStr, result }) {
 
   return (
     <section className="relative overflow-hidden">
-      <div className="starfield-bg pointer-events-none absolute inset-0 opacity-70" />
+      {/* Hintergrund: driftendes Sternenfeld unter weichem Farblicht. */}
       <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(60% 50% at 50% 0%, rgba(138,180,255,0.12), transparent 70%)',
-        }}
+        className="starfield-bg pointer-events-none absolute -inset-x-24 -inset-y-10 animate-drift opacity-70"
+        aria-hidden="true"
       />
-      <div className="relative mx-auto max-w-5xl px-6 pb-14 pt-16 sm:pt-24">
+      <div className="aurora-blue pointer-events-none absolute inset-0" aria-hidden="true" />
+
+      <Shell className="relative pb-14 pt-14 sm:pt-20">
         <div className="animate-fade-in text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-light-400/20 bg-space-800/50 px-3 py-1 text-xs font-medium text-light-300/80">
+          <span className="chip pointer-events-none border-light-400/20 bg-space-800/50 text-light-300/85">
             <span className="h-1.5 w-1.5 animate-pulse-slow rounded-full bg-beam" />
             Eine Reise mit Lichtgeschwindigkeit
           </span>
-          <h1 className="mx-auto mt-5 max-w-3xl text-balance font-display text-4xl font-bold leading-tight tracking-tight text-light-200 sm:text-6xl">
+          <h1 className="mx-auto mt-6 max-w-[54rem] text-balance font-display text-[2.15rem] font-bold leading-[1.08] tracking-tight text-light-100 sm:text-[3.4rem]">
             Wie weit ist das Licht seit deinem Datum gereist?
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-balance text-base text-light-300/70 sm:text-lg">
+          <p className="mx-auto mt-5 max-w-prose text-pretty text-base leading-relaxed text-light-300/75 sm:text-lg">
             Wähle ein Datum. Wir berechnen, welche Strecke ein Lichtstrahl seit
             diesem Moment zurückgelegt hätte – und zeigen sie dir im Kosmos.
           </p>
         </div>
 
-        {/* Eingabe + Ergebnis */}
-        <div className="mx-auto mt-10 grid max-w-4xl gap-4 md:grid-cols-2">
+        {/* Eingabe und Ergebnis bilden ein Instrument, keine zwei Kacheln. */}
+        <div className="panel mx-auto mt-12 grid max-w-4xl overflow-hidden md:grid-cols-2">
           {/* Eingabe */}
-          <div className="rounded-2xl border border-light-400/15 bg-space-900/60 p-6 backdrop-blur-md">
-            <label
-              htmlFor="date"
-              className="text-xs font-medium uppercase tracking-widest text-light-300/60"
-            >
+          <div className="border-b border-light-400/10 p-6 md:border-b-0 md:border-r sm:p-7">
+            <label htmlFor="date" className="label">
               Startdatum
             </label>
             <input
@@ -61,68 +58,74 @@ export default function Hero({ dateStr, setDateStr, result }) {
               max={today}
               min="0001-01-01"
               onChange={(e) => setDateStr(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-light-400/20 bg-space-950/70 px-4 py-3 font-display text-2xl text-light-200 outline-none transition focus:border-light-400/60 focus:ring-2 focus:ring-light-400/30"
+              className="field mt-2.5 font-display text-2xl"
             />
-            <div className="mt-4 flex flex-wrap gap-2">
-              {PRESETS.map((p) => (
-                <button
-                  key={p.label}
-                  onClick={() => setDateStr(p.get())}
-                  className="rounded-full border border-light-400/15 bg-space-800/60 px-3 py-1.5 text-xs text-light-300/80 transition hover:border-light-400/40 hover:text-white"
-                >
-                  {p.label}
-                </button>
-              ))}
+            <div className="mt-5">
+              <div className="label mb-2.5 text-light-300/45">Schnellwahl</div>
+              <div className="flex flex-wrap gap-2">
+                {PRESETS.map((p) => (
+                  <button key={p.label} onClick={() => setDateStr(p.get())} className="chip">
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Ergebnis */}
-          <div className="flex flex-col justify-center rounded-2xl border border-beam/20 bg-gradient-to-br from-space-800/70 to-space-900/70 p-6 backdrop-blur-md">
+          <div className="flex flex-col justify-center bg-gradient-to-br from-beam/[0.04] to-transparent p-6 sm:p-7">
             {result.isFuture ? (
-              <p className="text-center text-light-300/70">
+              <p className="text-center text-sm text-light-300/70">
                 Bitte wähle ein Datum in der Vergangenheit.
               </p>
             ) : (
               <>
-                <div className="text-xs font-medium uppercase tracking-widest text-light-300/60">
-                  Zurückgelegte Lichtdistanz
-                </div>
-                <div className="mt-1 flex items-baseline gap-2">
-                  <span className="font-display text-5xl font-bold tabular-nums text-beam sm:text-6xl">
+                <div className="label">Zurückgelegte Lichtdistanz</div>
+                <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className="figure text-[3.25rem] leading-none sm:text-6xl">
                     {result.distance.display}
                   </span>
-                  <span className="font-display text-lg text-light-300/80">
+                  <span className="font-display text-lg text-light-300/85">
                     {result.distance.unit}
                   </span>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+
+                <div className="mt-6 h-px w-full rule-fade" aria-hidden="true" />
+
+                <dl className="mt-5 space-y-3.5">
                   <Stat label="Vergangene Zeit" value={result.elapsedText} />
                   <Stat
-                    label="Ansicht"
-                    value={result.scene === 'solar' ? 'Sonnensystem' : 'Sternenkarte'}
-                  />
-                  <Stat
                     label="In Kilometern"
-                    value={`${nf(0).format(Math.round(result.km))} km`}
-                    wide
+                    value={kmCompact(result.km)}
+                    title={kmExact(result.km)}
                   />
-                </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="label">Ansicht</dt>
+                    <dd className="inline-flex items-center gap-1.5 rounded-full border border-light-400/20 bg-light-400/10 px-2.5 py-1 text-xs font-medium text-light-200">
+                      <span className="h-1.5 w-1.5 rounded-full bg-light-400" />
+                      {result.scene === 'solar' ? 'Sonnensystem' : 'Sternenkarte'}
+                    </dd>
+                  </div>
+                </dl>
               </>
             )}
           </div>
         </div>
-      </div>
+      </Shell>
     </section>
   )
 }
 
-function Stat({ label, value, wide }) {
+function Stat({ label, value, title }) {
   return (
-    <div className={wide ? 'col-span-2' : ''}>
-      <div className="text-[11px] uppercase tracking-wider text-light-300/50">
-        {label}
-      </div>
-      <div className="mt-0.5 font-medium text-light-200">{value}</div>
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className="label">{label}</dt>
+      <dd
+        className="text-right font-medium tabular-nums text-light-100"
+        title={title}
+      >
+        {value}
+      </dd>
     </div>
   )
 }

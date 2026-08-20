@@ -1,82 +1,96 @@
+import { Shell } from './Section.jsx'
+
+const SOURCES = [
+  {
+    label: 'Sternpositionen',
+    href: 'https://github.com/astronexus/HYG-Database',
+    link: 'HYG-Datenbank',
+    after: ' (astronexus), nächste ≈ 3.600 Sterne',
+  },
+  {
+    label: 'Planetenpositionen',
+    href: 'https://github.com/cosinekitty/astronomy',
+    link: 'astronomy-engine',
+  },
+  {
+    label: 'Deep-Sky-Objekte',
+    before: 'Messier-Katalog (110), Positionen/Typen aus ',
+    href: 'https://github.com/mattiaverga/OpenNGC',
+    link: 'OpenNGC',
+    after: ', Distanzen aus Literaturwerten',
+  },
+  {
+    label: 'Sternenhimmel-Hintergrund',
+    href: 'https://svs.gsfc.nasa.gov/4851',
+    link: 'NASA/Goddard SVS – Deep Star Map 2020',
+    after: ' (Gaia DR2, gemeinfrei)',
+  },
+]
+
+const FACTS = [
+  ['Lichtgeschwindigkeit', '299.792,458 km/s (exakt, SI)'],
+  ['Voyager-1-Distanz', 'NASA/JPL, lineares Modell'],
+  ['Nahe Sternhaufen', 'kuratierte Auswahl (Hyaden, Coma Ber. u. a.)'],
+]
+
 export default function Footer() {
   return (
-    <footer className="border-t border-light-400/10 bg-space-950/80">
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <div className="grid gap-8 sm:grid-cols-2">
+    <footer className="mt-4 border-t border-light-400/10 bg-space-975">
+      <Shell className="py-12">
+        <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:gap-16">
           <div>
-            <div className="font-display text-lg font-semibold text-light-200">
-              Lichtreise
+            <div className="flex items-center gap-2.5">
+              <span className="relative flex h-2.5 w-2.5 items-center justify-center">
+                <span className="absolute inset-0 rounded-full bg-beam/30 blur-[3px]" />
+                <span className="relative h-1.5 w-1.5 rounded-full bg-beam" />
+              </span>
+              <span className="font-display text-base font-semibold text-light-100">
+                Lichtreise
+              </span>
             </div>
-            <p className="mt-2 max-w-md text-sm text-light-300/60">
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-light-300/65">
               Ein kleines Experiment darüber, wie unfassbar groß der Kosmos ist –
               gemessen an der Geschwindigkeit des Lichts.
             </p>
+            <dl className="mt-6 space-y-2.5">
+              {FACTS.map(([k, v]) => (
+                <div key={k} className="text-xs">
+                  <dt className="label text-[10px] text-light-300/45">{k}</dt>
+                  <dd className="mt-0.5 text-light-300/75">{v}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-          <div className="text-sm">
-            <div className="text-xs font-medium uppercase tracking-widest text-light-300/50">
-              Datenquellen
-            </div>
-            <ul className="mt-2 space-y-1.5 text-light-300/70">
-              <li>
-                Sternpositionen:{' '}
-                <a
-                  href="https://github.com/astronexus/HYG-Database"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-light-300 underline decoration-light-400/40 underline-offset-2 hover:text-white"
-                >
-                  HYG-Datenbank
-                </a>{' '}
-                (astronexus), nächste ≈&nbsp;3.600 Sterne
-              </li>
-              <li>
-                Planetenpositionen:{' '}
-                <a
-                  href="https://github.com/cosinekitty/astronomy"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-light-300 underline decoration-light-400/40 underline-offset-2 hover:text-white"
-                >
-                  astronomy-engine
-                </a>
-              </li>
-              <li>
-                Deep-Sky-Objekte: Messier-Katalog (110), Positionen/Typen aus{' '}
-                <a
-                  href="https://github.com/mattiaverga/OpenNGC"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-light-300 underline decoration-light-400/40 underline-offset-2 hover:text-white"
-                >
-                  OpenNGC
-                </a>
-                , Distanzen aus Literaturwerten
-              </li>
-              <li>Nahe Sternhaufen: kuratierte Auswahl (Hyaden, Coma&nbsp;Ber. u.&nbsp;a.)</li>
-              <li>
-                Sternenhimmel-Hintergrund:{' '}
-                <a
-                  href="https://svs.gsfc.nasa.gov/4851"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-light-300 underline decoration-light-400/40 underline-offset-2 hover:text-white"
-                >
-                  NASA/Goddard SVS – Deep Star Map 2020
-                </a>{' '}
-                (Gaia&nbsp;DR2, gemeinfrei)
-              </li>
-              <li>
-                Lichtgeschwindigkeit: 299.792,458&nbsp;km/s (exakt, SI)
-              </li>
-              <li>Voyager-1-Distanz: NASA/JPL (genähert)</li>
+
+          <div>
+            <div className="label text-light-300/50">Datenquellen</div>
+            <ul className="mt-4 space-y-3 text-sm">
+              {SOURCES.map((s) => (
+                <li key={s.label} className="leading-relaxed">
+                  <span className="text-light-300/50">{s.label}: </span>
+                  <span className="text-light-300/80">
+                    {s.before}
+                    <a
+                      href={s.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="link-subtle"
+                    >
+                      {s.link}
+                    </a>
+                    {s.after}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
-        <div className="mt-8 flex flex-col items-start justify-between gap-2 border-t border-light-400/10 pt-6 text-xs text-light-300/40 sm:flex-row sm:items-center">
+
+        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-light-400/10 pt-6 text-xs text-light-300/45 sm:flex-row sm:items-center">
           <span>Gebaut mit React, Vite, Tailwind &amp; React Three Fiber.</span>
           <span>Alle Distanzen sind Näherungen zu Anschauungszwecken.</span>
         </div>
-      </div>
+      </Shell>
     </footer>
   )
 }

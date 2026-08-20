@@ -58,6 +58,20 @@ Tagen bis Jahrzehnten gemeinsam lesbar bleiben.
 5. **Gemeinsame Reise** – geteilte Lichtreise zweier Menschen (eigener Abschnitt).
 6. **Footer** – Datenquellen-Hinweise.
 
+## Gestaltung
+
+Alle Abschnitte teilen sich ein Raster (`max-w-shell`), damit von der Kopfzeile
+bis zum Footer eine durchgehende vertikale Kante entsteht. Wiederkehrende
+Flächen und Bedienelemente liegen als Komponentenklassen in `src/index.css`
+(`.panel`, `.panel-accent`, `.hud`, `.chip`, `.btn-accent`, `.field`, `.label`),
+die Farb-, Schatten- und Bewegungs-Token in `tailwind.config.js`. Overlays über
+der 3D-Szene nutzen durchgängig `.hud`.
+
+Sehr große Kilometerzahlen werden kompakt ausgegeben („40,17 Billionen km"),
+der exakte Wert steht im Tooltip. Die Fortschrittsbalken im Kontext-Bereich
+bilden sechs Zehnerpotenzen logarithmisch ab – linear wären die kurzen Strecken
+unsichtbar.
+
 ## Technik
 
 - [React](https://react.dev) + [Vite](https://vitejs.dev)

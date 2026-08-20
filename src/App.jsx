@@ -5,6 +5,7 @@ import ContextSection from './components/ContextSection.jsx'
 import Footer from './components/Footer.jsx'
 import ModeNav from './components/ModeNav.jsx'
 import SharedJourney from './components/SharedJourney.jsx'
+import { Shell, SectionHeading } from './components/Section.jsx'
 import { computeLightTravel } from './lib/lightTravel.js'
 import { readJourneyFromLocation } from './lib/journey.js'
 
@@ -39,34 +40,48 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full bg-space-975">
       <ModeNav mode={mode} setMode={switchMode} />
 
-      {mode === 'einzel' ? (
-        <>
-          <Hero dateStr={dateStr} setDateStr={setDateStr} result={result} />
+      <main>
+        {mode === 'einzel' ? (
+          <>
+            <Hero dateStr={dateStr} setDateStr={setDateStr} result={result} />
 
-          <section className="mx-auto max-w-[1400px] px-4 pb-6 sm:px-6">
-            <div className="relative h-[70vh] min-h-[460px] w-full overflow-hidden rounded-3xl border border-light-400/15 bg-space-950 shadow-2xl">
-              {result.isFuture ? (
-                <div className="grid h-full place-items-center px-6 text-center text-light-300/60">
-                  Wähle ein Datum in der Vergangenheit, um die Lichtreise zu sehen.
+            <section className="pb-4 pt-6">
+              <Shell>
+                <div className="relative h-[min(70vh,42rem)] min-h-[26rem] w-full overflow-hidden rounded-3xl border border-light-400/10 bg-space-975 shadow-panel">
+                  {result.isFuture ? (
+                    <div className="grid h-full place-items-center px-6 text-center text-sm text-light-300/60">
+                      Wähle ein Datum in der Vergangenheit, um die Lichtreise zu
+                      sehen.
+                    </div>
+                  ) : (
+                    <Visualization
+                      result={result}
+                      selected={selected}
+                      setSelected={setSelected}
+                    />
+                  )}
                 </div>
-              ) : (
-                <Visualization
-                  result={result}
-                  selected={selected}
-                  setSelected={setSelected}
-                />
-              )}
-            </div>
-          </section>
+              </Shell>
+            </section>
 
-          <ContextSection result={result} />
-        </>
-      ) : (
-        <SharedJourney initial={initialJourney} />
-      )}
+            <section className="relative py-16 sm:py-20">
+              <Shell>
+                <SectionHeading
+                  eyebrow="Maßstab"
+                  title="Ein Gefühl für die Distanz"
+                  description="Die zurückgelegte Lichtdistanz im Vergleich zu bekannten Wegmarken im Kosmos. Grün bedeutet: dein Lichtstrahl hat diese Marke bereits überholt."
+                />
+                <ContextSection result={result} />
+              </Shell>
+            </section>
+          </>
+        ) : (
+          <SharedJourney initial={initialJourney} />
+        )}
+      </main>
 
       <Footer />
     </div>
